@@ -12,15 +12,17 @@ namespace DevResumeApi.Controllers
     public class UserController : ControllerBase
     {
 
-        public UserController()
-        {
+        private readonly List<User> _users;
 
+        public UserController(List<User> users)
+        {
+            _users = users;
         }
 
         [HttpGet]
-        public void Get()
+        public ActionResult<List<User>> Get()
         {
-
+            return _users.ToList();
         }
     }
 }
