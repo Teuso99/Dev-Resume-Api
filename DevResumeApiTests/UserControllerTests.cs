@@ -40,7 +40,7 @@ namespace DevResumeApiTests
         }
 
         [Fact]
-        public void GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
+        public void GetUserById_ReturnsNotFound_WhenIdNotProvided()
         {
             // Arrange
 
@@ -50,6 +50,8 @@ namespace DevResumeApiTests
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
         }
+
+        [Fact]
 
 
     }
