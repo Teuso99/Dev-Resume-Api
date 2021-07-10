@@ -24,5 +24,23 @@ namespace DevResumeApi.Controllers
         {
             return _users.ToList();
         }
+
+        [HttpGet("{id}")]
+        public ActionResult<User> GetById(Guid? id)
+        {
+            if (id == null)
+            {
+                return new NotFoundObjectResult("ID not provided!");
+            }
+
+            var user = _users.SingleOrDefault(m => m.Id == id);
+
+            if (user == null)
+            {
+                return new NotFoundObjectResult("User not found!");
+            }
+
+            return user;
+        }
     }
 }

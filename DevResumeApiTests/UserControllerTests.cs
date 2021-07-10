@@ -35,7 +35,22 @@ namespace DevResumeApiTests
 
             // Assert
             var model = Assert.IsAssignableFrom<ActionResult<List<User>>>(result);
+            Assert.Equal(2, model.Value.Count);
 
         }
+
+        [Fact]
+        public void GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+
+            // Act
+            var result = _userController.GetById(null);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
+        }
+
+
     }
 }
