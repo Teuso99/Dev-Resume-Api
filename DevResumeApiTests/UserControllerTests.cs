@@ -5,6 +5,7 @@ using DevResumeApi.Controllers;
 using System.Collections.Generic;
 using DevResumeApi;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace DevResumeApiTests
 {
@@ -52,7 +53,18 @@ namespace DevResumeApiTests
         }
 
         [Fact]
+        public void GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            var user = new User() { Id = new Guid("0f8fad5b-d9cb-469f-a165-70867728950e") };
 
+            _mockUsersList.Object.SingleOrDefault(m => m.Id == user.Id);
 
+            // Act
+            var result = _userController.GetById(user.Id);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
+        }
     }
 }
