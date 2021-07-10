@@ -66,5 +66,23 @@ namespace DevResumeApiTests
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
         }
+
+        [Fact]
+        public void GetUserById_ReturnsSingleUser_WhenUserExist()
+        {
+            // Arrange
+            var singleMockUser = new User() { Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"), 
+                Email = "emailcompleto@email.com", FirstName = "Mateus", LastName = "Machado", 
+                Password = "senha123" };
+
+            _mockUsersList.Object.Add(singleMockUser);
+
+            // Act
+            var result = _userController.GetById(singleMockUser.Id);
+
+            // Assert
+            var model = Assert.IsType<ActionResult<User>>(result);
+            Assert.Equal(singleMockUser, model.Value);
+        }
     }
 }
