@@ -42,5 +42,19 @@ namespace DevResumeApi.Controllers
 
             return user;
         }
+
+        [HttpPost]
+        public ActionResult Post(User user)
+        {
+            if (! ModelState.IsValid)
+            {
+                return new BadRequestObjectResult(ModelState);
+            }
+
+            user.Id = Guid.NewGuid();
+            _users.Add(user);
+
+            return CreatedAtAction("Get", user);
+        }
     }
 }

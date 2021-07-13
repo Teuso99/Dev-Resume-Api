@@ -71,9 +71,14 @@ namespace DevResumeApiTests
         public void GetUserById_ReturnsSingleUser_WhenUserExist()
         {
             // Arrange
-            var singleMockUser = new User() { Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"), 
-                Email = "emailcompleto@email.com", FirstName = "Mateus", LastName = "Machado", 
-                Password = "senha123" };
+            var singleMockUser = new User() 
+            { 
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"), 
+                Email = "emailcompleto@email.com", 
+                FirstName = "Mateus", 
+                LastName = "Machado", 
+                Password = "senha123" 
+            };
 
             _mockUsersList.Object.Add(singleMockUser);
 
@@ -83,6 +88,69 @@ namespace DevResumeApiTests
             // Assert
             var model = Assert.IsType<ActionResult<User>>(result);
             Assert.Equal(singleMockUser, model.Value);
+        }
+
+        [Fact]
+        public void PostUser_ReturnsBadRequest_WhenModelStateIsInvalid()
+        {
+            // Arrange
+            var incompleteUser = new User()
+            {
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                FirstName = "Jorge",
+                LastName = "Silva",
+                Password = "outrasenha456"
+            };
+
+            _userController.ModelState.AddModelError("Email", "Email field is required!");
+
+            // Act
+            var result = _userController.Post(incompleteUser);
+
+            // Assert
+            Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public void PostUser_ReturnsCreatedResponse_WhenValidObjectPassed()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail1@email.com",
+                Password = "novasenha100"
+            };
+
+            // Act
+            mockUser.Id = Guid.NewGuid();
+            var result = _userController.Post(mockUser);
+
+            // Assert
+            Assert.IsAssignableFrom<CreatedAtActionResult>(result);
+        }
+
+        [Fact]
+        public void PostUser_ReturnsResponseHasCreatedItem_WhenValidObjectPassed()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail2@email.com",
+                Password = "novasenha2"
+            };
+
+            // Act
+            var result = _userController.Post(mockUser) as CreatedAtActionResult;
+            var item = result.Value as User;
+
+            // Assert
+            Assert.IsType<User>(item);
+            Assert.Equal("novoemail2@email.com", item.Email);
         }
     }
 }
