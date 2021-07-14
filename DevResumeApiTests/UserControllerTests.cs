@@ -152,5 +152,74 @@ namespace DevResumeApiTests
             Assert.IsType<User>(item);
             Assert.Equal("novoemail2@email.com", item.Email);
         }
+
+        [Fact]
+        public void RemoveUser_ReturnsNotFound_WhenIdDoesNotExist()
+        {
+            // Arrange
+            var notExistingGuid = Guid.NewGuid();
+
+            // Act
+            var result = _userController.Delete(notExistingGuid);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public void RemoveUser_ReturnsOkResult_WhenIdExist()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail2@email.com",
+                Password = "novasenha2"
+            };
+
+            _mockUsersList.Object.Add(mockUser);
+
+            // Act
+            var result =_userController.Delete(mockUser.Id);
+
+            // Assert
+            Assert.IsAssignableFrom<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public void RemoveUser_RemovesOneItem_WhenIdExist()
+        {
+            // Arrange
+            var mockUser = new List<User>()
+            {
+                new User()
+                {
+                    Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                    FirstName = "Carlos",
+                    LastName = "Souza",
+                    Email = "novoemail1@email.com",
+                    Password = "novasenha100"
+                },
+
+                new User()
+                { 
+                    Id = new Guid(),
+                    FirstName = "Carlos",
+                    LastName = "Souza",
+                    Email = "novoemail2@email.com",
+                    Password = "novasenha2"
+                }
+            };
+
+            _mockUsersList.Object.AddRange(mockUser);
+
+            // Act
+            _userController.Delete(new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
+
+            // Assert
+            Assert.Single(_userController.Get().Value);
+        }
     }
 }

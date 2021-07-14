@@ -56,5 +56,20 @@ namespace DevResumeApi.Controllers
 
             return CreatedAtAction("Get", user);
         }
+
+        [HttpDelete("{id}")]
+        public ActionResult Delete(Guid id)
+        {
+            var userToDelete = _users.SingleOrDefault(m => m.Id == id);
+
+            if (userToDelete == null)
+            {
+                return new NotFoundObjectResult(userToDelete);
+            }
+
+            _users.Remove(userToDelete);
+
+            return new OkObjectResult("User " + userToDelete.Email + " deleted");
+        }
     }
 }
