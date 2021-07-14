@@ -20,13 +20,13 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<User>> Get()
+        public ActionResult<List<User>> GetAllUsers()
         {
             return _users.ToList();
         }
 
         [HttpGet("{id}")]
-        public ActionResult<User> GetById(Guid? id)
+        public ActionResult<User> GetUserById(Guid? id)
         {
             if (id == null)
             {
@@ -44,7 +44,7 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post(User user)
+        public ActionResult PostUser(User user)
         {
             if (! ModelState.IsValid)
             {
@@ -58,7 +58,7 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(Guid id)
+        public ActionResult DeleteUser(Guid id)
         {
             var userToDelete = _users.SingleOrDefault(m => m.Id == id);
 
@@ -73,7 +73,7 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult Put(Guid? id, User user)
+        public ActionResult PutUser(Guid? id, User user)
         {
             if (id == null || user == null)
             {

@@ -32,7 +32,7 @@ namespace DevResumeApiTests
 
             _mockUsersList.Object.AddRange(mockUsers);
             // Act
-            var result = _userController.Get();
+            var result = _userController.GetAllUsers();
 
             // Assert
             var model = Assert.IsAssignableFrom<ActionResult<List<User>>>(result);
@@ -46,7 +46,7 @@ namespace DevResumeApiTests
             // Arrange
 
             // Act
-            var result = _userController.GetById(null);
+            var result = _userController.GetUserById(null);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
@@ -61,7 +61,7 @@ namespace DevResumeApiTests
             _mockUsersList.Object.SingleOrDefault(m => m.Id == user.Id);
 
             // Act
-            var result = _userController.GetById(user.Id);
+            var result = _userController.GetUserById(user.Id);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
@@ -83,7 +83,7 @@ namespace DevResumeApiTests
             _mockUsersList.Object.Add(singleMockUser);
 
             // Act
-            var result = _userController.GetById(singleMockUser.Id);
+            var result = _userController.GetUserById(singleMockUser.Id);
 
             // Assert
             var model = Assert.IsType<ActionResult<User>>(result);
@@ -105,7 +105,7 @@ namespace DevResumeApiTests
             _userController.ModelState.AddModelError("Email", "Email field is required!");
 
             // Act
-            var result = _userController.Post(incompleteUser);
+            var result = _userController.PostUser(incompleteUser);
 
             // Assert
             Assert.IsAssignableFrom<BadRequestObjectResult>(result);
@@ -125,7 +125,7 @@ namespace DevResumeApiTests
 
             // Act
             mockUser.Id = Guid.NewGuid();
-            var result = _userController.Post(mockUser);
+            var result = _userController.PostUser(mockUser);
 
             // Assert
             Assert.IsAssignableFrom<CreatedAtActionResult>(result);
@@ -145,7 +145,7 @@ namespace DevResumeApiTests
             };
 
             // Act
-            var result = _userController.Post(mockUser) as CreatedAtActionResult;
+            var result = _userController.PostUser(mockUser) as CreatedAtActionResult;
             var item = result.Value as User;
 
             // Assert
@@ -160,7 +160,7 @@ namespace DevResumeApiTests
             var notExistingGuid = Guid.NewGuid();
 
             // Act
-            var result = _userController.Delete(notExistingGuid);
+            var result = _userController.DeleteUser(notExistingGuid);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result);
@@ -182,7 +182,7 @@ namespace DevResumeApiTests
             _mockUsersList.Object.Add(mockUser);
 
             // Act
-            var result =_userController.Delete(mockUser.Id);
+            var result =_userController.DeleteUser(mockUser.Id);
 
             // Assert
             Assert.IsAssignableFrom<OkObjectResult>(result);
@@ -216,17 +216,17 @@ namespace DevResumeApiTests
             _mockUsersList.Object.AddRange(mockUser);
 
             // Act
-            _userController.Delete(new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
+            _userController.DeleteUser(new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
 
             // Assert
-            Assert.Single(_userController.Get().Value);
+            Assert.Single(_userController.GetAllUsers().Value);
         }
 
         [Fact]
         public void PutUser_ReturnsNotFound_WhenIdAndUserIsNull()
         {
             // Act
-            var result = _userController.Put(null, null);
+            var result = _userController.PutUser(null, null);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result);
@@ -239,7 +239,7 @@ namespace DevResumeApiTests
             var mockUserId = Guid.NewGuid();
 
             // Act
-            var result = _userController.Put(mockUserId, null);
+            var result = _userController.PutUser(mockUserId, null);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result);
@@ -259,7 +259,7 @@ namespace DevResumeApiTests
             };
 
             // Act
-            var result = _userController.Put(null, mockUser);
+            var result = _userController.PutUser(null, mockUser);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result);
@@ -279,7 +279,7 @@ namespace DevResumeApiTests
             };
 
             // Act
-            var result = _userController.Put(mockUser.Id, mockUser);
+            var result = _userController.PutUser(mockUser.Id, mockUser);
 
             // Assert
             Assert.IsAssignableFrom<NotFoundObjectResult>(result);
@@ -301,7 +301,7 @@ namespace DevResumeApiTests
             _mockUsersList.Object.Add(mockUser);
 
             // Act
-            var result = _userController.Put(mockUser.Id, mockUser);
+            var result = _userController.PutUser(mockUser.Id, mockUser);
 
             // Assert
             Assert.IsAssignableFrom<OkObjectResult>(result);
@@ -331,11 +331,11 @@ namespace DevResumeApiTests
             };
 
             // Act
-            var result = _userController.Put(mockUser.Id, mockUserToUpdate);
+            var result = _userController.PutUser(mockUser.Id, mockUserToUpdate);
 
             // Assert
             var model = Assert.IsAssignableFrom<OkObjectResult>(result);
-            Assert.Equal(mockUserToUpdate.Email, _userController.GetById(mockUser.Id).Value.Email);
+            Assert.Equal(mockUserToUpdate.Email, _userController.GetUserById(mockUser.Id).Value.Email);
         }
     }
 }
