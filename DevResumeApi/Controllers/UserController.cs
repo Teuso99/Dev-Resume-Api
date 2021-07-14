@@ -71,5 +71,32 @@ namespace DevResumeApi.Controllers
 
             return new OkObjectResult("User " + userToDelete.Email + " deleted");
         }
+
+        [HttpPut("{id}")]
+        public ActionResult Put(Guid? id, User user)
+        {
+            if (id == null || user == null)
+            {
+                return new NotFoundObjectResult("User or UserId is missing!");
+            }
+
+            var userToUpdate = _users.FirstOrDefault(m => m.Id == id);
+            _users.Remove(userToUpdate);
+
+            if (userToUpdate == null)
+            {
+                return new NotFoundObjectResult("User with UserId is missing!");
+            }
+
+            userToUpdate.Id = (Guid)id;
+            userToUpdate.FirstName = user.FirstName;
+            userToUpdate.LastName = user.LastName;
+            userToUpdate.Email = user.Email;
+            userToUpdate.Password = user.Password;
+
+            _users.Add(userToUpdate);
+
+            return new OkObjectResult(userToUpdate);
+        }
     }
 }

@@ -221,5 +221,121 @@ namespace DevResumeApiTests
             // Assert
             Assert.Single(_userController.Get().Value);
         }
+
+        [Fact]
+        public void PutUser_ReturnsNotFound_WhenIdAndUserIsNull()
+        {
+            // Act
+            var result = _userController.Put(null, null);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public void PutUser_ReturnsNotFound_WhenUserIsNull()
+        {
+            // Arrange
+            var mockUserId = Guid.NewGuid();
+
+            // Act
+            var result = _userController.Put(mockUserId, null);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public void PutUser_ReturnsNotFound_WhenIdIsNull()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail1@email.com",
+                Password = "novasenha100"
+            };
+
+            // Act
+            var result = _userController.Put(null, mockUser);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public void PutUser_ReturnsNotFound_WhenIdNotExist()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail1@email.com",
+                Password = "novasenha100"
+            };
+
+            // Act
+            var result = _userController.Put(mockUser.Id, mockUser);
+
+            // Assert
+            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public void PutUser_ReturnsOkResult_WhenIdExist()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail1@email.com",
+                Password = "novasenha100"
+            };
+
+            _mockUsersList.Object.Add(mockUser);
+
+            // Act
+            var result = _userController.Put(mockUser.Id, mockUser);
+
+            // Assert
+            Assert.IsAssignableFrom<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public void PutUser_ReturnsNewUserAfterUpdate_WhenIdExist()
+        {
+            // Arrange
+            var mockUser = new User()
+            {
+                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
+                FirstName = "Carlos",
+                LastName = "Souza",
+                Email = "novoemail1@email.com",
+                Password = "novasenha100"
+            };
+
+            _mockUsersList.Object.Add(mockUser);
+
+            var mockUserToUpdate = new User()
+            {
+                FirstName = "Mateus",
+                LastName = "Machado",
+                Email = "meuemail2@email.com",
+                Password = "123minhasenha"
+            };
+
+            // Act
+            var result = _userController.Put(mockUser.Id, mockUserToUpdate);
+
+            // Assert
+            var model = Assert.IsAssignableFrom<OkObjectResult>(result);
+            Assert.Equal(mockUserToUpdate.Email, _userController.GetById(mockUser.Id).Value.Email);
+        }
     }
 }
