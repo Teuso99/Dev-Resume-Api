@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace DevResumeApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
 
@@ -22,6 +22,7 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpGet]
+        [Route("GetAll")]
         public async Task<ActionResult<List<User>>> GetAllUsers()
         {
             return await _context.Users.ToListAsync();
@@ -46,6 +47,7 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpPost]
+        [Route("Post")]
         public async Task<ActionResult> PostUser(User user)
         {
             if (! ModelState.IsValid)

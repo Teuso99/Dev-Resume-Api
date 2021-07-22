@@ -6,336 +6,214 @@ using System.Collections.Generic;
 using DevResumeApi;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using DevResumeApi.Models;
+using System.Net.Http;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Hosting;
+using System.Threading.Tasks;
+using System.Net;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text;
 
 namespace DevResumeApiTests
 {
     public class UserControllerTests
     {
-        private readonly UserController _userController;
-        private readonly Mock<List<User>> _mockUsersList;
+        private readonly HttpClient _client;
 
         public UserControllerTests()
         {
-            _mockUsersList = new Mock<List<User>>();
-            _userController = new UserController(_mockUsersList.Object);
+            var server = new TestServer(new WebHostBuilder()
+                .UseStartup<Startup>());
+            _client = server.CreateClient();
         }
 
         [Fact]
-        public void GetUsers_ReturnListOfUsers()
+        public async Task GetUsers_ReturnListOfUsers()
         {
             // Arrange
-            var mockUsers = new List<User>
-            {
-                new User{Email = "email1@email.com"},
-                new User{Email = "email2@email.com"}
-            };
+            var request = "/api/User/GetAll";
 
-            _mockUsersList.Object.AddRange(mockUsers);
             // Act
-            var result = _userController.GetAllUsers();
+            var response = await _client.GetAsync(request);
 
             // Assert
-            var model = Assert.IsAssignableFrom<ActionResult<List<User>>>(result);
-            Assert.Equal(2, model.Value.Count);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         }
 
         [Fact]
-        public void GetUserById_ReturnsNotFound_WhenIdNotProvided()
+        public async Task GetUserById_ReturnsNotFound_WhenIdNotProvided()
         {
             // Arrange
+            var request = "/api/User/";
 
             // Act
-            var result = _userController.GetUserById(null);
+            var response = await _client.GetAsync(request);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
-        public void GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
+        public async Task GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var user = new User() { Id = new Guid("0f8fad5b-d9cb-469f-a165-70867728950e") };
-
-            _mockUsersList.Object.SingleOrDefault(m => m.Id == user.Id);
+            var id = Guid.NewGuid();
+            var request = "/api/User/" + id;
 
             // Act
-            var result = _userController.GetUserById(user.Id);
+            var response = await _client.GetAsync(request);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result.Result);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         public void GetUserById_ReturnsSingleUser_WhenUserExist()
         {
             // Arrange
-            var singleMockUser = new User() 
-            { 
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"), 
-                Email = "emailcompleto@email.com", 
-                FirstName = "Mateus", 
-                LastName = "Machado", 
-                Password = "senha123" 
-            };
-
-            _mockUsersList.Object.Add(singleMockUser);
 
             // Act
-            var result = _userController.GetUserById(singleMockUser.Id);
 
             // Assert
-            var model = Assert.IsType<ActionResult<User>>(result);
-            Assert.Equal(singleMockUser, model.Value);
+
         }
 
         [Fact]
-        public void PostUser_ReturnsBadRequest_WhenModelStateIsInvalid()
+        public async Task PostUser_ReturnsBadRequest_WhenModelStateIsInvalid()
         {
             // Arrange
-            var incompleteUser = new User()
+            var request = "/api/User/Post";
+            var newUser = new User();
+            var requestBody = new StringContent(JsonConvert.SerializeObject(newUser), UnicodeEncoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync(request, requestBody);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task PostUser_ReturnsCreatedResponse_WhenValidObjectPassed()
+        {
+            // Arrange
+            var request = "/api/User/Post";
+            var newUser = new User()
             {
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
                 FirstName = "Jorge",
                 LastName = "Silva",
+                Email = "jsemail@email.com",
                 Password = "outrasenha456"
             };
-
-            _userController.ModelState.AddModelError("Email", "Email field is required!");
+            var requestBody = new StringContent(JsonConvert.SerializeObject(newUser), UnicodeEncoding.UTF8, "application/json");
 
             // Act
-            var result = _userController.PostUser(incompleteUser);
+            var response = await _client.PostAsync(request, requestBody);
 
             // Assert
-            Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
         [Fact]
-        public void PostUser_ReturnsCreatedResponse_WhenValidObjectPassed()
+        public async Task RemoveUser_ReturnsNotFound_WhenIdDoesNotExist()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail1@email.com",
-                Password = "novasenha100"
-            };
+            var id = Guid.NewGuid();
+            var request = "/api/User/" + id;
 
             // Act
-            mockUser.Id = Guid.NewGuid();
-            var result = _userController.PostUser(mockUser);
+            var response = await _client.DeleteAsync(request);
 
             // Assert
-            Assert.IsAssignableFrom<CreatedAtActionResult>(result);
-        }
-
-        [Fact]
-        public void PostUser_ReturnsResponseHasCreatedItem_WhenValidObjectPassed()
-        {
-            // Arrange
-            var mockUser = new User()
-            {
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail2@email.com",
-                Password = "novasenha2"
-            };
-
-            // Act
-            var result = _userController.PostUser(mockUser) as CreatedAtActionResult;
-            var item = result.Value as User;
-
-            // Assert
-            Assert.IsType<User>(item);
-            Assert.Equal("novoemail2@email.com", item.Email);
-        }
-
-        [Fact]
-        public void RemoveUser_ReturnsNotFound_WhenIdDoesNotExist()
-        {
-            // Arrange
-            var notExistingGuid = Guid.NewGuid();
-
-            // Act
-            var result = _userController.DeleteUser(notExistingGuid);
-
-            // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         public void RemoveUser_ReturnsOkResult_WhenIdExist()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail2@email.com",
-                Password = "novasenha2"
-            };
 
-            _mockUsersList.Object.Add(mockUser);
 
             // Act
-            var result =_userController.DeleteUser(mockUser.Id);
+
 
             // Assert
-            Assert.IsAssignableFrom<OkObjectResult>(result);
+
         }
 
         [Fact]
         public void RemoveUser_RemovesOneItem_WhenIdExist()
         {
             // Arrange
-            var mockUser = new List<User>()
-            {
-                new User()
-                {
-                    Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
-                    FirstName = "Carlos",
-                    LastName = "Souza",
-                    Email = "novoemail1@email.com",
-                    Password = "novasenha100"
-                },
-
-                new User()
-                { 
-                    Id = new Guid(),
-                    FirstName = "Carlos",
-                    LastName = "Souza",
-                    Email = "novoemail2@email.com",
-                    Password = "novasenha2"
-                }
-            };
-
-            _mockUsersList.Object.AddRange(mockUser);
 
             // Act
-            _userController.DeleteUser(new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
 
             // Assert
-            Assert.Single(_userController.GetAllUsers().Value);
         }
 
         [Fact]
         public void PutUser_ReturnsNotFound_WhenIdAndUserIsNull()
         {
+            // Arrange
+
             // Act
-            var result = _userController.PutUser(null, null);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
         }
 
         [Fact]
         public void PutUser_ReturnsNotFound_WhenUserIsNull()
         {
             // Arrange
-            var mockUserId = Guid.NewGuid();
 
             // Act
-            var result = _userController.PutUser(mockUserId, null);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
         }
 
         [Fact]
         public void PutUser_ReturnsNotFound_WhenIdIsNull()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                Id = Guid.NewGuid(),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail1@email.com",
-                Password = "novasenha100"
-            };
 
             // Act
-            var result = _userController.PutUser(null, mockUser);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
         }
 
         [Fact]
         public void PutUser_ReturnsNotFound_WhenIdNotExist()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                Id = Guid.NewGuid(),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail1@email.com",
-                Password = "novasenha100"
-            };
 
             // Act
-            var result = _userController.PutUser(mockUser.Id, mockUser);
 
             // Assert
-            Assert.IsAssignableFrom<NotFoundObjectResult>(result);
         }
 
         [Fact]
         public void PutUser_ReturnsOkResult_WhenIdExist()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail1@email.com",
-                Password = "novasenha100"
-            };
-
-            _mockUsersList.Object.Add(mockUser);
 
             // Act
-            var result = _userController.PutUser(mockUser.Id, mockUser);
 
             // Assert
-            Assert.IsAssignableFrom<OkObjectResult>(result);
+
         }
 
         [Fact]
         public void PutUser_ReturnsNewUserAfterUpdate_WhenIdExist()
         {
             // Arrange
-            var mockUser = new User()
-            {
-                Id = new Guid("7c9e6679-7425-40de-944b-e07fc1f90ae7"),
-                FirstName = "Carlos",
-                LastName = "Souza",
-                Email = "novoemail1@email.com",
-                Password = "novasenha100"
-            };
-
-            _mockUsersList.Object.Add(mockUser);
-
-            var mockUserToUpdate = new User()
-            {
-                FirstName = "Mateus",
-                LastName = "Machado",
-                Email = "meuemail2@email.com",
-                Password = "123minhasenha"
-            };
 
             // Act
-            var result = _userController.PutUser(mockUser.Id, mockUserToUpdate);
 
             // Assert
-            var model = Assert.IsAssignableFrom<OkObjectResult>(result);
-            Assert.Equal(mockUserToUpdate.Email, _userController.GetUserById(mockUser.Id).Value.Email);
         }
     }
 }
