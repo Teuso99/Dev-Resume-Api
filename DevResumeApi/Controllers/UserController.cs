@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using DevResumeApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace DevResumeApi.Controllers
 {
@@ -22,8 +21,8 @@ namespace DevResumeApi.Controllers
         }
 
         [HttpGet]
-        [Route("GetAll")]
-        public async Task<ActionResult<List<User>>> GetAllUsers()
+        [Route("GetUsers")]
+        public async Task<ActionResult<List<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
         }
@@ -55,11 +54,15 @@ namespace DevResumeApi.Controllers
                 return new BadRequestObjectResult(ModelState);
             }
 
-            user.Id = Guid.NewGuid();
+            if (user.Id == null)
+            {
+                user.Id = Guid.NewGuid();
+            }
+           
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAllUsers",  user);
+            return CreatedAtAction("GetUsers",  user);
         }
 
         [HttpDelete("{id}")]
